@@ -1,15 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SGA">
-  <defs>
-    <linearGradient id="logoAccent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="hsl(43 96% 66%)" />
-      <stop offset="100%" stop-color="hsl(43 96% 56%)" />
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="16" fill="url(#logoAccent)" />
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SGA">
+  <rect width="64" height="64" rx="16" fill="#0b1020" />
   <g
     transform="translate(2 2) scale(2.5)"
     fill="none"
-    stroke="hsl(222 47% 11%)"
+    stroke="#ffffff"
     stroke-linecap="round"
     stroke-linejoin="round"
     stroke-width="1.5"
