@@ -1,6 +1,4 @@
-import { useLocation } from "react-router-dom";
-import { NavLink } from "@/components/NavLink";
-import {
+﻿import {
   LayoutDashboard,
   Users,
   FileText,
@@ -11,6 +9,8 @@ import {
   Scale,
   UserPlus,
 } from "lucide-react";
+import { NavLink } from "@/components/NavLink";
+import { Logo } from "@/components/Logo";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +22,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -31,28 +32,23 @@ const menuItems = [
   { title: "Agenda", url: "/agenda", icon: Calendar },
   { title: "Documentos", url: "/documentos", icon: FolderOpen },
   { title: "Financeiro", url: "/financeiro", icon: DollarSign },
-  { title: "Usuários", url: "/usuarios", icon: Settings },
+  { title: "Usuarios", url: "/usuarios", icon: Settings },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
-  const location = useLocation();
   const isCollapsed = state === "collapsed";
-
-  const isActive = (path: string) => location.pathname === path;
 
   return (
     <Sidebar className={isCollapsed ? "w-16" : "w-64"} collapsible="icon">
       <SidebarContent>
         <div className="p-4">
-          <h1 className={`font-serif text-2xl font-bold text-sidebar-primary transition-all ${isCollapsed ? "text-center" : ""}`}>
-            {isCollapsed ? "S" : "SGA"}
-          </h1>
-          {!isCollapsed && (
-            <p className="text-xs text-sidebar-foreground/70 mt-1">
-              Sistema Gestão Advocacia
-            </p>
-          )}
+          <Logo
+            variant="sidebar"
+            emblemSize={isCollapsed ? "sm" : "md"}
+            showText={!isCollapsed}
+            className={cn("transition-all", isCollapsed && "justify-center")}
+          />
         </div>
 
         <SidebarGroup>
@@ -82,3 +78,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
