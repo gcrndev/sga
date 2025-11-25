@@ -28,7 +28,7 @@ app.use("/users", userRoutes);
 
 // rota simples de teste
 app.get("/", (req, res) => {
-  res.json({ status: "SGA API rodando 🚀" });
+  res.json({ status: "SGA API rodando" });
 });
 
 const PORT = process.env.PORT || 3000;

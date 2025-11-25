@@ -7,14 +7,14 @@ const clientService = require("../services/clientService");
 // todas as rotas de cliente exigem estar logado
 router.use(requireAuth);
 
-// listar clientes – ADMIN, ADVOGADO, ADMINISTRATIVO, FINANCEIRO
+// listar clientes - ADMIN, ADVOGADO, ADMINISTRATIVO, FINANCEIRO
 router.get(
   "/",
   requireRole(["ADMIN", "ADVOGADO", "ADMINISTRATIVO", "FINANCEIRO"]),
   clientService.listClients
 );
 
-// criar cliente – ADMIN, ADMINISTRATIVO
+// criar cliente - ADMIN, ADMINISTRATIVO
 router.post(
   "/",
   requireRole(["ADMIN", "ADMINISTRATIVO"]),

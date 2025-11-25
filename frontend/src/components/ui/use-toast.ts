@@ -1,3 +1,1 @@
-import { useToast, toast } from "@/hooks/use-toast";
-
-export { useToast, toast };
+// Proxy for useToast removed; import from hooks/use-toast instead\n

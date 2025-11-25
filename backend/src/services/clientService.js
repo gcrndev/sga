@@ -33,7 +33,7 @@ async function createClient(req, res) {
     } = req.body;
 
     if (!full_name) {
-      return res.status(400).json({ error: "Nome do cliente é obrigatório" });
+      return res.status(400).json({ error: "Nome do cliente e obrigatorio" });
     }
 
     const result = await db.query(

@@ -11,12 +11,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Opcional: testar conexão na inicialização
-transporter.verify((error, success) => {
+// Opcional: testar conexao na inicializacao
+transporter.verify((error) => {
   if (error) {
     console.error("Erro ao conectar no SMTP:", error);
   } else {
-    console.log("SMTP pronto para enviar emails ✔️");
+    console.log("SMTP pronto para enviar emails");
   }
 });
 
