@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node src/testdb.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "node src/testdb.js"
   },
   "keywords": [],
   "author": "",
