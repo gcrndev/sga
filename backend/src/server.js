@@ -9,6 +9,9 @@ const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
+// Honor reverse proxy headers (needed for accurate rate limiting behind Render/NGINX)
+app.set("trust proxy", process.env.TRUST_PROXY || 1);
+
 // middlewares globais
 app.use(cors());
 app.use(express.json());
