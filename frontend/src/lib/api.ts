@@ -95,9 +95,43 @@ export const clientsApi = {
     is_minor?: boolean;
     guardian_name?: string | null;
     guardian_contact?: string | null;
+    service_type?: string | null;
+    date_of_birth?: string | null;
+    passport_number?: string | null;
+    address?: string | null;
+    postal_code?: string | null;
+    nationality?: string | null;
   }) =>
     request("/clients", {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+  updateStatus: (id: number, status: string) =>
+    request(`/clients/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
+};
+
+export const publicFormsApi = {
+  submitClient: (
+    slug: string,
+    body: {
+      name: string;
+      email: string;
+      phone: string;
+      service_type: string;
+      date_of_birth?: string;
+      passport_number?: string;
+      nif?: string;
+      address: string;
+      postal_code: string;
+      nationality: string;
+    }
+  ) =>
+    request(`/public/forms/${slug}/clients`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      skipAuth: true,
     }),
 };

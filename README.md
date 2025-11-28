@@ -32,14 +32,25 @@ Aplicacao fullstack para gestao de escritorios de advocacia, com login JWT, conv
    SMTP_PASSWORD=senha
    SMTP_FROM=SGA <no-reply@dominio.com>
    ```
-2. Instale e rode:
+2. Monte o schema no Postgres (inclui slug do escritorio e status dos clientes). Arquivo de referencia: `backend/db/schema.sql`.
+   ```sh
+   psql -h localhost -U postgres -d postgres -f backend/db/schema.sql
+   ```
+   Em bancos ja existentes, adicione manualmente:
+   - Coluna `slug TEXT UNIQUE NOT NULL` em `law_firms` (gerado a partir do nome do escritorio, sem sufixos numericos).
+   - Colunas em `clients`: `status TEXT DEFAULT 'pending'`, `sources TEXT DEFAULT 'public_form'`, `service_type TEXT`, `date_of_birth DATE`, `passport_number TEXT`, `address TEXT`, `postal_code TEXT`, `nationality TEXT`.
+3. Instale e rode:
    ```sh
    cd backend
    npm install
    npm run dev
    ```
 
-Endpoints principais: `/auth/login`, `/auth/register-firm`, `/auth/complete-invite`, `/auth/me`, `/users/staff` (GET/POST), `/clients` (GET/POST).
+Endpoints principais:
+- `/auth/login`, `/auth/register-firm`, `/auth/complete-invite`, `/auth/me`
+- `/users/staff` (GET/POST)
+- `/clients` (GET/POST) e `/clients/:id/status` (PATCH) para staff
+- `/public/forms/:slug/clients` (POST) formulario publico de cliente por slug do escritorio
 
 ## Frontend
 1. Crie `frontend/.env`:
@@ -58,6 +69,11 @@ Endpoints principais: `/auth/login`, `/auth/register-firm`, `/auth/complete-invi
 ```sh
 docker compose up -d db
 ```
+
+## Formulario publico por escritorio
+- Rota publica: `POST /public/forms/:slug/clients` (payload: nome, email, DDI, DDD, telefone, servico, data de nascimento, passaporte, NIF opcional, endereco, codigo postal, nacionalidade). Status inicial: `pending` e origem `public_form` (coluna `sources`).
+- Admin do escritorio recebe e-mail no `firm_email`.
+- Staff pode mudar o status para `active/rejected` via painel (endpoint `/clients/:id/status`).
 
 ## Boas praticas
 - Sempre validar entrada no backend (ex.: payloads de auth e de clientes) e retornar mensagens claras.

@@ -6,6 +6,7 @@ const rateLimit = require("express-rate-limit");
 const authRoutes = require("./routes/authRoutes");
 const clientRoutes = require("./routes/clientRoutes");
 const userRoutes = require("./routes/userRoutes");
+const publicRoutes = require("./routes/publicRoutes");
 
 const app = express();
 
@@ -24,10 +25,18 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const publicFormLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
+
 // rotas
 app.use("/auth", authLimiter, authRoutes);
 app.use("/clients", clientRoutes);
 app.use("/users", userRoutes);
+app.use("/public", publicFormLimiter, publicRoutes);
 
 // rota simples de teste
 app.get("/", (req, res) => {

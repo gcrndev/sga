@@ -21,4 +21,11 @@ router.post(
   clientService.createClient
 );
 
+// atualizar status de cliente - ADMIN, ADMINISTRATIVO
+router.patch(
+  "/:id/status",
+  requireRole(["ADMIN", "ADMINISTRATIVO"]),
+  clientService.updateStatus
+);
+
 module.exports = router;

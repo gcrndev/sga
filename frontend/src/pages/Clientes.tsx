@@ -15,8 +15,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { clientsApi } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Pendente",
+  active: "Ativo",
+  rejected: "Rejeitado",
+};
+
+const SERVICE_LABELS: Record<string, string> = {
+  ACAO_JUDICIAL: "Acao judicial",
+  NACIONALIDADE: "Nacionalidade",
+  VISTO: "Visto",
+};
 
 export default function Clientes() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     full_name: "",
@@ -48,6 +62,19 @@ export default function Clientes() {
     },
   });
 
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) =>
+      clientsApi.updateStatus(id, status),
+    onSuccess: () => {
+      toast.success("Status atualizado");
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Erro ao atualizar status";
+      toast.error(message);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.full_name.trim()) {
@@ -55,6 +82,24 @@ export default function Clientes() {
       return;
     }
     createMutation.mutate();
+  };
+
+  const publicBase =
+    import.meta.env.VITE_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    (typeof window !== "undefined" ? window.location.origin : "https://sgadvocacias.com") ||
+    "https://sgadvocacias.com";
+  const publicLink = user?.law_firm_slug
+    ? `${publicBase}/firm/${user.law_firm_slug}/novo-cliente`
+    : "";
+
+  const handleCopyLink = async () => {
+    if (!publicLink) return;
+    try {
+      await navigator.clipboard.writeText(publicLink);
+      toast.success("Link copiado");
+    } catch {
+      toast.error("Nao foi possivel copiar. Copie manualmente.");
+    }
   };
 
   return (
@@ -66,6 +111,28 @@ export default function Clientes() {
             <p className="text-muted-foreground mt-2">Cadastro e gestao de clientes</p>
           </div>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Link publico do escritorio</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Envie este link para clientes preencherem o formulario publico.
+            </p>
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              <Input value={publicLink} readOnly placeholder="Slug do escritorio ausente" />
+              <Button
+                type="button"
+                onClick={handleCopyLink}
+                disabled={!publicLink}
+                className="md:w-32"
+              >
+                Copiar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
@@ -133,18 +200,44 @@ export default function Clientes() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
-                    <TableHead>Documento</TableHead>
+                    <TableHead>Servico</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Telefone</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Origem</TableHead>
+                    <TableHead>Data</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {(listQuery.data as any[] | undefined)?.map((cliente) => (
                     <TableRow key={cliente.id}>
                       <TableCell className="font-medium">{cliente.full_name}</TableCell>
-                      <TableCell>{cliente.nif || "-"}</TableCell>
+                      <TableCell>
+                        {SERVICE_LABELS[cliente.service_type] || cliente.service_type || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <select
+                          className="w-28 rounded-md border border-input bg-background px-2 py-1 text-sm"
+                          value={cliente.status || "pending"}
+                          onChange={(e) =>
+                            statusMutation.mutate({ id: cliente.id, status: e.target.value })
+                          }
+                        >
+                          {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </TableCell>
                       <TableCell>{cliente.phone || "-"}</TableCell>
                       <TableCell>{cliente.email || "-"}</TableCell>
+                      <TableCell className="capitalize">{cliente.sources?.replace("_", " ") || "-"}</TableCell>
+                      <TableCell>
+                        {cliente.created_at
+                          ? new Date(cliente.created_at).toLocaleDateString()
+                          : "-"}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

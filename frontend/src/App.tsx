@@ -20,6 +20,7 @@ import Documentos from "./pages/Documentos";
 import Financeiro from "./pages/Financeiro";
 import Usuarios from "./pages/Usuarios";
 import NotFound from "./pages/NotFound";
+import PublicClientForm from "./pages/PublicClientForm";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +38,8 @@ const AppRoutes = () => {
   useEffect(() => {
     const root = document.documentElement;
     const isAuthPage = authPaths.has(location.pathname);
-    root.classList.toggle("dark", !isAuthPage);
+    const isPublicIntake = location.pathname.startsWith("/firm/");
+    root.classList.toggle("dark", !(isAuthPage || isPublicIntake));
   }, [location.pathname]);
 
   return (
@@ -113,6 +115,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route path="/firm/:slug/novo-cliente" element={<PublicClientForm />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

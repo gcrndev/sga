@@ -15,6 +15,7 @@ export type User = {
   user_type: string;
   role: string;
   law_firm_id: number;
+  law_firm_slug?: string;
 };
 
 export type AuthContextType = {

@@ -2,6 +2,19 @@ const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+function slugifyName(name = "") {
+  return (
+    name
+      .toString()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "")
+      .slice(0, 60) || "escritorio"
+  );
+}
+
 function getSaltRounds() {
   const parsed = Number(process.env.BCRYPT_SALT_ROUNDS);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 10;
@@ -12,15 +25,15 @@ async function login(req, res) {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ error: "Email e senha sao obrigatorios" });
+      return res.status(400).json({ error: "Email e senha sao obrigatorios" });
     }
 
     const result = await db.query(
-      `SELECT id, law_firm_id, name, email, password_hash, user_type, role, is_active
-       FROM users
-       WHERE email = $1`,
+      `SELECT u.id, u.law_firm_id, u.name, u.email, u.password_hash, u.user_type, u.role, u.is_active,
+              lf.slug AS law_firm_slug
+       FROM users u
+       JOIN law_firms lf ON lf.id = u.law_firm_id
+       WHERE u.email = $1`,
       [email]
     );
 
@@ -68,6 +81,7 @@ async function login(req, res) {
         user_type: user.user_type,
         role: user.role,
         law_firm_id: user.law_firm_id,
+        law_firm_slug: user.law_firm_slug,
       },
     });
   } catch (err) {
@@ -99,14 +113,23 @@ async function registerFirm(req, res) {
 
     await client.query("BEGIN");
 
+    const slug = slugifyName(firm_name);
+
     const firmResult = await client.query(
-      `INSERT INTO law_firms (name, nif, email, phone, is_active)
-       VALUES ($1, $2, $3, $4, TRUE)
-       RETURNING id`,
-      [firm_name, firm_nif || null, firm_email || null, firm_phone || null]
+      `INSERT INTO law_firms (name, nif, email, phone, is_active, slug)
+       VALUES ($1, $2, $3, $4, TRUE, $5)
+       RETURNING id, slug`,
+      [
+        firm_name,
+        firm_nif || null,
+        firm_email || null,
+        firm_phone || null,
+        slug,
+      ]
     );
 
     const lawFirmId = firmResult.rows[0].id;
+    const firmSlug = firmResult.rows[0].slug;
 
     const passwordHash = await bcrypt.hash(owner_password, getSaltRounds());
 
@@ -140,6 +163,7 @@ async function registerFirm(req, res) {
         id: lawFirmId,
         name: firm_name,
         email: firm_email,
+        slug: firmSlug,
         nif: firm_nif,
         phone: firm_phone,
       },
@@ -150,11 +174,19 @@ async function registerFirm(req, res) {
         user_type: adminUser.user_type,
         role: adminUser.role,
         law_firm_id: lawFirmId,
+        law_firm_slug: firmSlug,
       },
     });
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Erro no registerFirm:", err);
+
+    if (err.code === "23505") {
+      return res
+        .status(409)
+        .json({ error: "Nome/slug de escritorio ja em uso. Escolha outro nome." });
+    }
+
     res.status(500).json({ error: "Erro ao registrar escritorio" });
   } finally {
     client.release();
@@ -184,15 +216,19 @@ async function completeInvite(req, res) {
     }
 
     const result = await db.query(
-      `SELECT id, law_firm_id, name, email, user_type, role,
+      `SELECT u.id, u.law_firm_id, u.name, u.email, u.user_type, u.role,
               invite_token, invite_expires_at, is_active, password_hash
-       FROM users
-       WHERE invite_token = $1`,
+             , lf.slug AS law_firm_slug
+       FROM users u
+       JOIN law_firms lf ON lf.id = u.law_firm_id
+       WHERE u.invite_token = $1`,
       [token]
     );
 
     if (result.rowCount === 0) {
-      return res.status(400).json({ error: "Convite invalido ou ja utilizado" });
+      return res
+        .status(400)
+        .json({ error: "Convite invalido ou ja utilizado" });
     }
 
     const user = result.rows[0];
@@ -241,6 +277,7 @@ async function completeInvite(req, res) {
         user_type: user.user_type,
         role: user.role,
         law_firm_id: user.law_firm_id,
+        law_firm_slug: user.law_firm_slug,
       },
     });
   } catch (err) {
@@ -258,9 +295,11 @@ async function me(req, res) {
     }
 
     const result = await db.query(
-      `SELECT id, name, email, user_type, role, law_firm_id
-       FROM users
-       WHERE id = $1`,
+      `SELECT u.id, u.name, u.email, u.user_type, u.role, u.law_firm_id,
+              lf.slug AS law_firm_slug
+       FROM users u
+       JOIN law_firms lf ON lf.id = u.law_firm_id
+       WHERE u.id = $1`,
       [userId]
     );
 
