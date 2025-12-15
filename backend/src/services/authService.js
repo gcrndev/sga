@@ -1,6 +1,8 @@
 const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { sendMail } = require("../config/mailer");
+const { welcome_email_template } = require("../email/welcome_email_template");
 
 function slugifyName(name = "") {
   return (
@@ -111,6 +113,18 @@ async function registerFirm(req, res) {
       });
     }
 
+    const firmNifRaw = firm_nif ? firm_nif.toString() : "";
+    const nifOnlyDigits = firmNifRaw.replace(/\D/g, "");
+    const hasNonDigits = firmNifRaw.length > 0 && firmNifRaw !== nifOnlyDigits;
+
+    if (hasNonDigits || nifOnlyDigits.length > 9) {
+      return res.status(400).json({
+        error: "firm_nif deve conter apenas numeros e ate 9 caracteres",
+      });
+    }
+
+    const normalizedNif = nifOnlyDigits || null;
+
     await client.query("BEGIN");
 
     const slug = slugifyName(firm_name);
@@ -121,7 +135,7 @@ async function registerFirm(req, res) {
        RETURNING id, slug`,
       [
         firm_name,
-        firm_nif || null,
+        normalizedNif,
         firm_email || null,
         firm_phone || null,
         slug,
@@ -156,6 +170,23 @@ async function registerFirm(req, res) {
     });
 
     await client.query("COMMIT");
+
+    try {
+      const { subject, text, html } = welcome_email_template({
+        userName: adminUser.name,
+        userEmail: adminUser.email,
+        firmName: firm_name,
+      });
+
+      await sendMail({
+        to: adminUser.email,
+        subject,
+        text,
+        html,
+      });
+    } catch (emailErr) {
+      console.error("Erro ao enviar email de boas-vindas:", emailErr);
+    }
 
     res.status(201).json({
       token,

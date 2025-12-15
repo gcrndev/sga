@@ -45,19 +45,21 @@ export default function Clientes() {
   });
 
   const createMutation = useMutation({
-    mutationFn: () => clientsApi.create({
-      full_name: form.full_name,
-      nif: form.nif || null,
-      phone: form.phone || null,
-      email: form.email || null,
-    }),
+    mutationFn: () =>
+      clientsApi.create({
+        full_name: form.full_name,
+        nif: form.nif || null,
+        phone: form.phone || null,
+        email: form.email || null,
+      }),
     onSuccess: () => {
       toast.success("Cliente criado");
       setForm({ full_name: "", nif: "", phone: "", email: "" });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : "Erro ao criar cliente";
+      const message =
+        err instanceof Error ? err.message : "Erro ao criar cliente";
       toast.error(message);
     },
   });
@@ -70,7 +72,8 @@ export default function Clientes() {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : "Erro ao atualizar status";
+      const message =
+        err instanceof Error ? err.message : "Erro ao atualizar status";
       toast.error(message);
     },
   });
@@ -86,7 +89,9 @@ export default function Clientes() {
 
   const publicBase =
     import.meta.env.VITE_PUBLIC_APP_URL?.replace(/\/$/, "") ||
-    (typeof window !== "undefined" ? window.location.origin : "https://sgadvocacias.com") ||
+    (typeof window !== "undefined"
+      ? window.location.origin
+      : "https://sgadvocacias.com") ||
     "https://sgadvocacias.com";
   const publicLink = user?.law_firm_slug
     ? `${publicBase}/firm/${user.law_firm_slug}/novo-cliente`
@@ -107,8 +112,12 @@ export default function Clientes() {
       <div className="space-y-6 animate-fade-in">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-serif font-bold text-foreground">Clientes</h1>
-            <p className="text-muted-foreground mt-2">Cadastro e gestao de clientes</p>
+            <h1 className="text-4xl font-serif font-bold text-foreground">
+              Clientes
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Cadastro e gestao de clientes
+            </p>
           </div>
         </div>
 
@@ -121,7 +130,11 @@ export default function Clientes() {
               Envie este link para clientes preencherem o formulario publico.
             </p>
             <div className="flex flex-col md:flex-row md:items-center gap-3">
-              <Input value={publicLink} readOnly placeholder="Slug do escritorio ausente" />
+              <Input
+                value={publicLink}
+                readOnly
+                placeholder="Slug do escritorio ausente"
+              />
               <Button
                 type="button"
                 onClick={handleCopyLink}
@@ -136,56 +149,6 @@ export default function Clientes() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Novo Cliente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="full_name">Nome completo *</label>
-                <Input
-                  id="full_name"
-                  value={form.full_name}
-                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="nif">NIF</label>
-                <Input
-                  id="nif"
-                  value={form.nif}
-                  onChange={(e) => setForm({ ...form, nif: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="phone">Telefone</label>
-                <Input
-                  id="phone"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="email">Email</label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                />
-              </div>
-              <div className="md:col-span-2 flex justify-end">
-                <Button type="submit" className="gap-2" disabled={createMutation.isPending}>
-                  <Plus className="h-4 w-4" />
-                  {createMutation.isPending ? "Salvando..." : "Salvar"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
             <CardTitle>Lista de clientes</CardTitle>
           </CardHeader>
           <CardContent>
@@ -194,7 +157,9 @@ export default function Clientes() {
             ) : listQuery.isError ? (
               <p className="text-sm text-red-500">Erro ao carregar clientes</p>
             ) : listQuery.data && (listQuery.data as any[]).length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum cliente cadastrado.</p>
+              <p className="text-sm text-muted-foreground">
+                Nenhum cliente cadastrado.
+              </p>
             ) : (
               <Table>
                 <TableHeader>
@@ -211,28 +176,39 @@ export default function Clientes() {
                 <TableBody>
                   {(listQuery.data as any[] | undefined)?.map((cliente) => (
                     <TableRow key={cliente.id}>
-                      <TableCell className="font-medium">{cliente.full_name}</TableCell>
+                      <TableCell className="font-medium">
+                        {cliente.full_name}
+                      </TableCell>
                       <TableCell>
-                        {SERVICE_LABELS[cliente.service_type] || cliente.service_type || "-"}
+                        {SERVICE_LABELS[cliente.service_type] ||
+                          cliente.service_type ||
+                          "-"}
                       </TableCell>
                       <TableCell>
                         <select
                           className="w-28 rounded-md border border-input bg-background px-2 py-1 text-sm"
                           value={cliente.status || "pending"}
                           onChange={(e) =>
-                            statusMutation.mutate({ id: cliente.id, status: e.target.value })
+                            statusMutation.mutate({
+                              id: cliente.id,
+                              status: e.target.value,
+                            })
                           }
                         >
-                          {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
+                          {Object.entries(STATUS_LABELS).map(
+                            ([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            )
+                          )}
                         </select>
                       </TableCell>
                       <TableCell>{cliente.phone || "-"}</TableCell>
                       <TableCell>{cliente.email || "-"}</TableCell>
-                      <TableCell className="capitalize">{cliente.sources?.replace("_", " ") || "-"}</TableCell>
+                      <TableCell className="capitalize">
+                        {cliente.sources?.replace("_", " ") || "-"}
+                      </TableCell>
                       <TableCell>
                         {cliente.created_at
                           ? new Date(cliente.created_at).toLocaleDateString()
