@@ -247,9 +247,17 @@ async function completeInvite(req, res) {
     }
 
     const result = await db.query(
-      `SELECT u.id, u.law_firm_id, u.name, u.email, u.user_type, u.role,
-              invite_token, invite_expires_at, is_active, password_hash
-             , lf.slug AS law_firm_slug
+      `SELECT u.id,
+              u.law_firm_id,
+              u.name,
+              u.email,
+              u.user_type,
+              u.role,
+              u.invite_token,
+              u.invite_expires_at,
+              u.is_active,
+              u.password_hash,
+              lf.slug AS law_firm_slug
        FROM users u
        JOIN law_firms lf ON lf.id = u.law_firm_id
        WHERE u.invite_token = $1`,

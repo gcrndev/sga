@@ -11,8 +11,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/context/AuthContext";
+
+function getInitials(name?: string | null) {
+  if (!name) return "US";
+  const parts = name.trim().split(/\s+/);
+  const initials = (parts[0]?.[0] || "") + (parts[parts.length - 1]?.[0] || "");
+  return initials.toUpperCase() || "US";
+}
 
 export function AppHeader() {
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -44,7 +53,7 @@ export function AppHeader() {
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar>
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  AD
+                  {getInitials(user?.name)}
                 </AvatarFallback>
               </Avatar>
             </Button>
