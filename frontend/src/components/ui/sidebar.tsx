@@ -139,7 +139,8 @@ const Sidebar = React.forwardRef<
     collapsible?: "offcanvas" | "icon" | "none";
   }
 >(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, state, openMobile, setOpenMobile, open, setOpen } = useSidebar();
+  const isFloating = variant === "floating";
 
   if (collapsible === "none") {
     return (
@@ -153,9 +154,11 @@ const Sidebar = React.forwardRef<
     );
   }
 
-  if (isMobile) {
+  if (isMobile || isFloating) {
+    const sheetOpen = isFloating ? open : openMobile;
+    const handleOpenChange = isFloating ? setOpen : setOpenMobile;
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+      <Sheet open={sheetOpen} onOpenChange={handleOpenChange} {...props}>
         <SheetContent
           data-sidebar="sidebar"
           data-mobile="true"
