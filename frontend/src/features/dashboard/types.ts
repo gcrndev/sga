@@ -14,17 +14,44 @@ export type SeriesResponse = {
 };
 
 export type KpisResponse = {
+  financeiro: {
+    total_a_receber: number;
+    total_recebido_periodo: number;
+  };
   clientes: {
     ativos: number;
     inativos: number;
-    novos_mes: number;
   };
-  processos: {
-    ativos: number;
-    pendentes: number;
-    novos_mes: number;
+  tarefas: {
+    vencidas: number;
   };
-  honorarios: {
-    recebido_mes: number;
-  };
+};
+
+export type AgingBar = {
+  faixa: string;
+  honorarios: number;
+  despesas: number;
+  total: number;
+};
+
+export type StatusCount = {
+  status: string;
+  quantidade: number;
+};
+
+export type TasksStatus = {
+  status: string;
+  no_prazo: number;
+  vencidas: number;
+};
+
+export type TasksStatusResponse = {
+  items: TasksStatus[];
+  totalVencidas: number;
+};
+
+export type PendingClient = {
+  cliente: string;
+  processos: number;
+  dias_sem_movimentacao: number;
 };
